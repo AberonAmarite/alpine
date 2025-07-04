@@ -1,0 +1,169 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <link rel="icon" type="image/svg+xml" href="/vite.svg" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Vite App</title>
+  </head>
+  <body class="">
+    <div
+      id="app"
+      x-data="{ 
+        posts: [{
+        title: 'Sample Post',
+        description: 'This is a sample post description.',
+        author_name: 'John Doe',
+        created_at: new Date(),
+        likes_count: 0,
+        id: 1
+        }],
+      addPost(title, description, author_name) {
+        const postId = Date.now();
+        this.posts.push({ title, description, author_name, created_at: new Date(), likes_count: 0, id: postId });
+        console.log(`Post added: ${title}, ${description}, ${author_name}`);
+        this.animation.idToShow = postId;
+        setTimeout(() => {
+          this.animation.idToShow = null;
+        }, 0);
+      },
+      validateForm(form) {
+        const title = form.title.value.trim();
+        const description = form.description.value.trim();
+        const author_name = form.author_name.value.trim();
+    
+        if (!title || !description || !author_name) {
+          alert('All fields are required!');
+          return false;
+        }
+        
+        if (title.length < 5) {
+          alert('Title must be at least 5 characters long.');
+          return false;
+        }
+    
+        return true;
+      },
+      search: '',
+      getFilteredPosts() {
+        const lowerSearch = this.search.toLowerCase();
+        return this.posts.filter(post => post.title.toLowerCase().includes(lowerSearch) || post.description.toLowerCase().includes(lowerSearch) || post.author_name.toLowerCase().includes(lowerSearch));
+      },
+      deletePost(postId) {
+        console.log(`Deleting post with ID ${postId}`);
+        this.animation.idToDelete = postId;
+        setTimeout(() => {
+          console.log(`Post with ID ${postId} deleted`);
+          this.posts = this.posts.filter(p => p.id !== postId);
+          this.animation.idToDelete = null;
+        }, 1000);
+      },
+      animation: {
+        idToDelete: null,
+        idToShow: null,
+
+      }
+      }"
+    >
+      <main class="flex m-4">
+        <div class="flex flex-col space-y-4 w-full">
+          <!--search input-->
+          <input
+            x-model="search"
+            placeholder="Search..."
+            class="border rounded-lg w-80 p-4"
+          />
+
+          <!--posts-->
+          <div class="flex flex-wrap gap-4">
+            <template x-for="post in getFilteredPosts" :key="post.id">
+              <!-- post card -->
+              <div
+                class="border p-4 rounded-lg w-80 flex-shrink-0"
+                x-show="post.id !== animation.idToShow && post.id !== animation.idToDelete"
+                x-transition:enter="transition ease-out duration-500"
+                x-transition:enter-start="opacity-0 transform scale-95"
+                x-transition:enter-end="opacity-100 transform scale-100"
+                x-transition:leave="transition ease-in duration-500"
+                x-transition:leave-start="opacity-100 transform scale-100"
+                x-transition:leave-end="opacity-0 transform scale-95"
+              >
+                <h1
+                  x-text="post.title"
+                  class="line-clamp-1 text-center font-bold"
+                ></h1>
+                <p x-text="post.description" class="line-clamp-3"></p>
+                <p x-text="`Author: ${post.author_name}`"></p>
+                <p
+                  x-text="`Created at ${new Date(post.created_at).toLocaleString()}`"
+                ></p>
+                <p x-text="`Likes: ${post.likes_count}`"></p>
+                <div class="flex items-center justify-around mt-2">
+                  <button
+                    x-on:click="post.likes_count++"
+                    class="border px-4 py-2 rounded-lg cursor-pointer hover:bg-gray-500"
+                  >
+                    ❤️
+                  </button>
+                  <button
+                    x-on:click="
+                    console.log(`Post with ID ${post.id} clicked`);
+                    animation.idToDelete = post.id;
+                    deletePost(post.id);"
+                    class="border px-4 py-2 rounded-lg cursor-pointer hover:bg-red-500"
+                  >
+                    🗑️
+                  </button>
+                </div>
+              </div>
+            </template>
+          </div>
+        </div>
+
+        <div class="border p-4 mr-2 rounded-lg">
+          <h2 class="text-lg font-bold">Add Post</h2>
+          <!-- form to add post -->
+          <form
+            x-on:submit.prevent="
+            if (validateForm($event.target)) {
+              addPost(
+                $event.target.title.value,
+                $event.target.description.value,
+                $event.target.author_name.value
+              );
+              $event.target.reset();
+            }"
+          >
+            <label for="title">Title</label><br />
+            <input
+              type="text"
+              id="title"
+              name="title"
+              class="border mb-2"
+            /><br />
+            <label for="description">Description</label><br />
+            <input
+              type="text"
+              id="description"
+              name="description"
+              class="border mb-2"
+            />
+            <label for="author_name">Author's name</label><br />
+            <input
+              type="text"
+              id="author_name"
+              name="author_name"
+              class="border mb-2"
+            />
+            <input
+              type="submit"
+              value="Submit"
+              class="border px-4 py-2 rounded-lg cursor-pointer hover:bg-blue-100"
+            />
+          </form>
+        </div>
+      </main>
+    </div>
+    <script type="module" src="/src/main.js"></script>
+  </body>
+</html>
